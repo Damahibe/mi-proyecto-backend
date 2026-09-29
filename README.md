@@ -107,4 +107,8 @@ git remote add origin https://github.com/Damahibe/mi-proyecto-backend.git
 git remote -v
 ```
 
-Se creó en GitHub el repositorio vacío `Damahibe/mi-proyecto-backend`. La subida con `git push -u origin main` todavía está pendiente.
+El proyecto se subió a `Damahibe/mi-proyecto-backend` con:
+
+```powershell
+git push -u origin main
+```
