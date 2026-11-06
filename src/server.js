@@ -18,7 +18,7 @@ const startServer = async () => {
     // 3. Puesta en marcha del servidor HTTP
     app.listen(PORT, () => {
       console.log(`🚀 Servidor escuchando en http://localhost:${PORT}`);
-      console.log(`📌 Base URL para Postman: http://localhost:${PORT}/api`);
+      console.log(`📌 Base URL para Postman: http://localhost:${PORT}/api/v1/`);
       console.log('========================================================');
     });
   } catch (error) {

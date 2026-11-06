@@ -1,34 +1,49 @@
 const express = require('express');
 const cors = require('cors');
-const morgan = require('morgan');
-const apiRoutes = require('./routes');
-const errorHandler = require('./middlewares/errorHandler');
+const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
+const projectRoutes = require('./routes/project.routes');
+const errorHandler = require('./middlewares/error.middleware');
 
 const app = express();
 
-// Middlewares globales
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
+
+// Normalizador de URLs para permitir compatibilidad si baseUrl tiene barra final
+app.use((req, res, next) => {
+  if (req.url.includes('//')) {
+    req.url = req.url.replace(/\/{2,}/g, '/');
+  }
+  next();
+});
 
 // Verificación de estado del servidor
 app.get('/', (req, res) => {
   res.status(200).json({
     message: 'API Segundo Corte - Gestión de Usuarios y Proyectos',
     version: '1.0.0',
+    prefix: '/api/v1',
     status: 'online'
   });
 });
 
-app.get('/api/health', (req, res) => {
+app.get('/api/v1/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Enrutador de la API (soporta baseUrl http://localhost:3000/api)
-app.use('/api', apiRoutes);
+// Montaje obligatorio de rutas bajo /api/v1
+app.use('/api/v1', authRoutes);
+app.use('/api/v1', userRoutes);
+app.use('/api/v1', projectRoutes);
 
-// Middleware global de manejo de errores
+// Compatibilidad adicional bajo /api
+app.use('/api', authRoutes);
+app.use('/api', userRoutes);
+app.use('/api', projectRoutes);
+
+// Manejador centralizado de errores
 app.use(errorHandler);
 
 module.exports = app;

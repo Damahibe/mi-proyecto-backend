@@ -1,30 +1,30 @@
 const projectService = require('../services/project.service');
 
-const createProject = async (req, res, next) => {
+exports.createProject = async (req, res, next) => {
   try {
-    const { name, description } = req.body;
-    const admin_from_token = req.user.id;
-    const project = await projectService.createProject({ name, description, admin_from_token });
+    const { nombre, descripcion } = req.body;
+    const admin_from_token = req.user.id || req.user.administrador_id;
+    const project = await projectService.createProject(nombre, descripcion, admin_from_token);
     res.status(201).json(project);
   } catch (error) {
     next(error);
   }
 };
 
-const getProjects = async (req, res, next) => {
+exports.getAllProjects = async (req, res, next) => {
   try {
-    const admin_from_token = req.user.id;
-    const projects = await projectService.getProjects(admin_from_token);
+    const admin_from_token = req.user.id || req.user.administrador_id;
+    const projects = await projectService.getAllProjectsByAdministradorId(admin_from_token);
     res.status(200).json(projects);
   } catch (error) {
     next(error);
   }
 };
 
-const getProjectById = async (req, res, next) => {
+exports.getProjectById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const admin_from_token = req.user.id;
+    const admin_from_token = req.user.id || req.user.administrador_id;
     const project = await projectService.getProjectById(id, admin_from_token);
     res.status(200).json(project);
   } catch (error) {
@@ -32,7 +32,7 @@ const getProjectById = async (req, res, next) => {
   }
 };
 
-const getProjectsByUserId = async (req, res, next) => {
+exports.getProjectsByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const projects = await projectService.getProjectsByUserId(userId);
@@ -42,72 +42,48 @@ const getProjectsByUserId = async (req, res, next) => {
   }
 };
 
-const assignUserToProject = async (req, res, next) => {
+exports.assignUserToProject = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { userId } = req.body;
-    const admin_from_token = req.user.id;
-    const result = await projectService.assignUserToProject({
-      project_id: id,
-      user_id: userId,
-      admin_from_token
-    });
+    const admin_from_token = req.user.id || req.user.administrador_id;
+    const result = await projectService.assignUserToProject(id, userId, admin_from_token);
     res.status(200).json(result);
   } catch (error) {
     next(error);
   }
 };
 
-const removeUserFromProject = async (req, res, next) => {
+exports.removeUserFromProject = async (req, res, next) => {
   try {
     const { id, userId } = req.params;
-    const admin_from_token = req.user.id;
-    const result = await projectService.removeUserFromProject({
-      project_id: id,
-      user_id: userId,
-      admin_from_token
-    });
+    const admin_from_token = req.user.id || req.user.administrador_id;
+    const result = await projectService.removeUserFromProject(id, userId, admin_from_token);
     res.status(200).json(result);
   } catch (error) {
     next(error);
   }
 };
 
-const updateProject = async (req, res, next) => {
+exports.updateProject = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
-    const admin_from_token = req.user.id;
-    const updated = await projectService.updateProject({
-      id,
-      name,
-      description,
-      admin_from_token
-    });
+    const { nombre, descripcion } = req.body;
+    const admin_from_token = req.user.id || req.user.administrador_id;
+    const updated = await projectService.updateProject(id, nombre, descripcion, admin_from_token);
     res.status(200).json(updated);
   } catch (error) {
     next(error);
   }
 };
 
-const deleteProject = async (req, res, next) => {
+exports.deleteProject = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const admin_from_token = req.user.id;
+    const admin_from_token = req.user.id || req.user.administrador_id;
     const result = await projectService.deleteProject(id, admin_from_token);
     res.status(200).json(result);
   } catch (error) {
     next(error);
   }
-};
-
-module.exports = {
-  createProject,
-  getProjects,
-  getProjectById,
-  getProjectsByUserId,
-  assignUserToProject,
-  removeUserFromProject,
-  updateProject,
-  deleteProject
 };

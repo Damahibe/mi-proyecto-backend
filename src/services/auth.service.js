@@ -28,7 +28,8 @@ const login = async ({ email, password }) => {
     {
       id: user.id,
       email: user.email,
-      role_id: user.role_id,
+      rol_id: user.rol_id,
+      role_id: user.rol_id,
       administrador_id: user.administrador_id
     },
     process.env.JWT_SECRET,
@@ -40,15 +41,19 @@ const login = async ({ email, password }) => {
     token,
     user: {
       id: user.id,
-      name: user.name,
+      nombre: user.nombre,
       email: user.email,
-      role_id: user.role_id
+      rol_id: user.rol_id,
+      administrador_id: user.administrador_id
     }
   };
 };
 
-const register = async ({ name, email, password, role_id }) => {
-  if (!name || !email || !password) {
+const register = async ({ nombre, name, email, password, rol_id, role_id }) => {
+  const userName = nombre || name;
+  const userRole = rol_id || role_id || 1;
+
+  if (!userName || !email || !password) {
     const error = new Error('Nombre, correo y contraseña son obligatorios');
     error.statusCode = 400;
     throw error;
@@ -63,17 +68,18 @@ const register = async ({ name, email, password, role_id }) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await User.create({
-    name,
+    nombre: userName,
     email,
     password: hashedPassword,
-    role_id: role_id || 1 // Primer usuario o registro público puede ser admin o según parámetro
+    rol_id: userRole
   });
 
   const token = jwt.sign(
     {
       id: user.id,
       email: user.email,
-      role_id: user.role_id,
+      rol_id: user.rol_id,
+      role_id: user.rol_id,
       administrador_id: user.administrador_id
     },
     process.env.JWT_SECRET,
@@ -85,9 +91,9 @@ const register = async ({ name, email, password, role_id }) => {
     token,
     user: {
       id: user.id,
-      name: user.name,
+      nombre: user.nombre,
       email: user.email,
-      role_id: user.role_id
+      rol_id: user.rol_id
     }
   };
 };

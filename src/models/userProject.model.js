@@ -7,13 +7,32 @@ const UserProject = sequelize.define('UserProject', {
     primaryKey: true,
     autoIncrement: true
   },
-  project_id: {
+  proyecto_id: {
     type: DataTypes.INTEGER,
     allowNull: false
   },
-  user_id: {
+  usuario_id: {
     type: DataTypes.INTEGER,
     allowNull: false
+  },
+  // Alias de compatibilidad
+  project_id: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      return this.getDataValue('proyecto_id');
+    },
+    set(value) {
+      this.setDataValue('proyecto_id', value);
+    }
+  },
+  user_id: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      return this.getDataValue('usuario_id');
+    },
+    set(value) {
+      this.setDataValue('usuario_id', value);
+    }
   }
 }, {
   tableName: 'user_projects',

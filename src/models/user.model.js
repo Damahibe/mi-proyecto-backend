@@ -7,7 +7,7 @@ const User = sequelize.define('User', {
     primaryKey: true,
     autoIncrement: true
   },
-  name: {
+  nombre: {
     type: DataTypes.STRING,
     allowNull: false,
     validate: {
@@ -30,7 +30,7 @@ const User = sequelize.define('User', {
       notEmpty: true
     }
   },
-  role_id: {
+  rol_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     defaultValue: 2 // 1: ADMIN, 2: USER
@@ -38,6 +38,25 @@ const User = sequelize.define('User', {
   administrador_id: {
     type: DataTypes.INTEGER,
     allowNull: true
+  },
+  // Alias de compatibilidad
+  name: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      return this.getDataValue('nombre');
+    },
+    set(value) {
+      this.setDataValue('nombre', value);
+    }
+  },
+  role_id: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      return this.getDataValue('rol_id');
+    },
+    set(value) {
+      this.setDataValue('rol_id', value);
+    }
   }
 }, {
   tableName: 'users',

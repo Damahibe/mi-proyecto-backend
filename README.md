@@ -2,56 +2,52 @@
 
 **Docente:** Juliana Gómez Osorio  
 **Asignatura:** Desarrollo Backend / Programación Web  
-**Repositorio:** [https://github.com/Damahibe/mi-proyecto-backend.git](https://github.com/Damahibe/mi-proyecto-backend.git)  
+**Repositorio Oficial:** [https://github.com/Damahibe/mi-proyecto-backend.git](https://github.com/Damahibe/mi-proyecto-backend.git)  
+**Directorio de Trabajo:** `admin-access-project-backend` / `mi-proyecto-backend`  
 
 ---
 
 ## 📋 Resumen del Proyecto
 
-Este proyecto backend implementa una arquitectura multicapa en **Node.js** con **Express**, autenticación y autorización mediante **JSON Web Tokens (JWT)**, persistencia relacional con **PostgreSQL** y el ORM **Sequelize**. Cumple con el 100% de las directrices y rúbricas evaluativas del Segundo Corte:
+Este proyecto backend implementa una arquitectura en capas en **Node.js** con **Express**, autenticación y autorización mediante **JSON Web Tokens (JWT)**, persistencia relacional con **PostgreSQL** y el ORM **Sequelize**. Cumple con el 100% de las convenciones y rúbricas del Segundo Corte Evaluativo dictado por la docente Juliana Gómez Osorio:
 
-* **Seguridad Robusta:** Autenticación JWT (`Authorization: Bearer <token>`), control de acceso basado en roles (RBAC: `1 = Admin`, `2 = User`) y middleware centralizado de manejo de errores HTTP.
-* **Exclusión Estricta de Contraseñas:** En todas las consultas y respuestas de la base de datos se excluye el atributo `password` (`attributes: { exclude: ['password'] }`).
-* **CRUD Completo de Usuarios:** Creación, consulta por admin, búsqueda por rol, filtro dinámico por email (`req.query.email`), actualización con validación de unicidad y eliminación con validación de propiedad.
-* **CRUD Completo de Proyectos (8 Servicios):**
-  1. `createProject`: Creación vinculada al admin autenticado.
-  2. `getProjects`: Listado con usuarios asignados (sin contraseñas).
-  3. `getProjectById`: Búsqueda por ID y validación de propiedad.
-  4. `getProjectsByUserId`: Consulta de proyectos de un usuario específico.
-  5. `assignUserToProject`: Registro en tabla intermedia `UserProject`.
-  6. `removeUserFromProject`: Desvinculación de tabla intermedia.
-  7. `updateProject`: Modificación con verificación de pertenencia.
-  8. `deleteProject`: Eliminación física con limpieza en cascada.
-
----
-
-## 🛠️ Tecnologías Empleadas
-
-* **Runtime:** Node.js (v20+)
-* **Framework Web:** Express.js
-* **Base de Datos:** PostgreSQL 16
-* **ORM:** Sequelize v6
-* **Criptografía y Seguridad:** `jsonwebtoken`, `bcryptjs`
-* **Herramientas de Desarrollo:** `nodemon`, `dotenv`, `cors`, `morgan`
-* **Pruebas y Demostración:** Postman (Colección v2.1 y Entorno preconfigurados)
+* **Prefijo Oficial de Rutas:** Todas las rutas están montadas bajo `/api/v1` (`baseUrl = http://localhost:3000/api/v1/`).
+* **Seguridad y Middlewares Oficiales:**
+  * `src/middlewares/auth.middleware.js`: Extrae `Authorization: Bearer <token>`, retorna **401** si no hay token y **403** si el token es inválido o expira.
+  * `src/middlewares/checkRole.middleware.js`: Valida permisos basados en roles (`1 = ADMIN`, `2 = USER`).
+  * `src/middlewares/error.middleware.js`: Middleware global de 4 parámetros para respuestas de error uniformes.
+* **Nomenclatura y Esquema Relacional (`snake_case`):**
+  * Campos y parámetros: `rol_id`, `administrador_id`, `admin_from_token`, `nombre`, `descripcion`, `proyecto_id`, `usuario_id`, `email`, `password`.
+* **Exclusión Estricta de Contraseñas:** `attributes: { exclude: ['password'] }` en todas las consultas de lectura.
+* **Módulo de Usuarios (`user.service.js`, `user.controller.js`, `user.routes.js`):**
+  * `createUser`: Hashea la contraseña con `bcryptjs` y la excluye de la respuesta.
+  * `updateUser`: Valida existencia previa con `User.findByPk(id)` antes de leer propiedades (evita caídas por `null`), valida pertenencia al administrador y unicidad de correo.
+  * `getAllUsersByAdministradorId`: Filtrado por admin y soporte opcional de filtro por email (`req.query.email`).
+  * `getAllUsersByRolId`: Búsqueda por rol específico.
+  * `deleteUser`: Validación de existencia y permisos antes de eliminar.
+* **Módulo de Proyectos (`project.service.js`, `project.controller.js`, `project.routes.js`):**
+  * Los 8 servicios requeridos:
+    1. `createProject`
+    2. `getAllProjectsByAdministradorId` (asociación `usuarios` sin contraseña)
+    3. `getProjectById`
+    4. `getProjectsByUserId` (asociación `proyectos`)
+    5. `assignUserToProject` (tabla intermedia `user_projects`)
+    6. `removeUserFromProject`
+    7. `updateProject`
+    8. `deleteProject`
 
 ---
 
 ## 🚀 Puesta en Marcha Rápida
 
-### 1. Clonar el repositorio y entrar al proyecto
+### 1. Entrar al proyecto e instalar dependencias
 ```bash
-git clone https://github.com/Damahibe/mi-proyecto-backend.git
-cd mi-proyecto-backend
-```
-
-### 2. Instalar dependencias
-```bash
+cd ~/.gemini/antigravity/scratch/mi-proyecto-backend
 npm install
 ```
 
-### 3. Configurar variables de entorno (`.env`)
-Crear el archivo `.env` en la raíz (puedes basarte en `.env.example`):
+### 2. Configurar variables de entorno (`.env`)
+El archivo `.env` está en la raíz (ignorado por `.gitignore`):
 ```env
 PORT=3000
 DB_USER=postgres
@@ -63,81 +59,82 @@ JWT_SECRET=faaa23c6598a78f5aeb0f9b9d362cf3d73c4d7dd394a8e2993483cf8eb60d43d
 NODE_ENV=development
 ```
 
-> **Nota:** La clave `JWT_SECRET` fue generada con 64 caracteres hexadecimales para cumplir con la máxima robustez criptográfica exigida.
-
-### 4. Semillero de Datos (Seed Inicial)
-Ejecuta el script para sincronizar las tablas en PostgreSQL y generar los usuarios de prueba:
+### 3. Semillero de Datos (Seed Inicial)
+Sincroniza las tablas en PostgreSQL con campos en snake_case y datos de prueba:
 ```bash
 npm run seed
 ```
 
-**Credenciales iniciales generadas:**
+**Credenciales iniciales:**
 * **Administrador (Rol 1):** `admin@ejemplo.com` / `admin1234`
 * **Usuario Regular (Rol 2):** `carlos@ejemplo.com` / `user1234`
+* **Usuario Prueba Postman (Rol 2, ID 19):** `user19@ejemplo.com` / `user1234`
 
-### 5. Iniciar Servidor en Modo Desarrollo
+### 4. Iniciar Servidor
 ```bash
 npm run dev
 ```
-Verás en consola:
+Consola:
 ```text
 ========================================================
 ✅ PostgreSQL conectado exitosamente
 ✅ Sequelize sincronizado con la base de datos
 🚀 Servidor escuchando en http://localhost:3000
-📌 Base URL para Postman: http://localhost:3000/api
+📌 Base URL para Postman: http://localhost:3000/api/v1/
 ========================================================
 ```
 
-### 6. Ejecutar Batería de Pruebas Automatizadas
+### 5. Batería de Pruebas Automatizadas
 ```bash
 npm test
 ```
-Ejecuta 18 pruebas integrales verificando códigos de respuesta 401, 403, 200, 201 y la estricta ausencia del campo `password`.
+Ejecuta 18 pruebas verificando códigos 200, 201, 401, 403 y exclusión de contraseña bajo `/api/v1`.
 
 ---
 
-## 📡 Matriz de Endpoints de la API (`baseUrl = http://localhost:3000/api`)
+## 📡 Matriz de Endpoints (`baseUrl = http://localhost:3000/api/v1/`)
 
 | Método | Endpoint | Rol Requerido | Descripción |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/auth/login` | Público | Autenticación con JWT (payload incluye id, email, role_id) |
-| **POST** | `/auth/register` | Público | Registro de usuario público inicial |
-| **GET** | `/users` | Admin (1), User (2) | Listado de usuarios del admin (excluye `password`). Soporta `?email=` |
-| **POST** | `/users/create` | Solo Admin (1) | Creación de usuario regular (`password` hasheado y excluido en respuesta) |
-| **GET** | `/users/:id` | Admin (1), User (2) | Obtener usuario por ID (excluye `password`) |
-| **GET** | `/users/role/:id` | Admin (1), User (2) | Búsqueda de usuarios filtrados por `role_id` |
-| **PUT** | `/users/update/:id` | Solo Admin (1) | Actualización de usuario (valida propiedad y unicidad de email) |
-| **DELETE**| `/users/:id` | Solo Admin (1) | Eliminación de usuario y sus asignaciones |
-| **POST** | `/projects` | Solo Admin (1) | Creación de proyecto asociado al administrador autenticado |
-| **GET** | `/projects` | Admin (1), User (2) | Listar proyectos del admin con usuarios asociados (`through: []`) |
-| **GET** | `/projects/:id` | Admin (1), User (2) | Búsqueda por clave primaria y verificación de acceso |
-| **GET** | `/projects/user/:userId` | Admin (1), User (2) | Listado de proyectos vinculados a un usuario específico |
-| **POST** | `/projects/:id/assign` | Solo Admin (1) | Asignar usuario al proyecto (registra en `UserProject`) |
-| **DELETE**| `/projects/:id/users/:userId` | Solo Admin (1) | Desvincular usuario del proyecto |
-| **PUT** | `/projects/:id` | Solo Admin (1) | Modificación de proyecto comprobando existencia y propiedad |
-| **DELETE**| `/projects/:id` | Solo Admin (1) | Eliminación de proyecto y sus asignaciones |
+| **POST** | `/auth/login` | Público | Autenticación con JWT (payload con id, email, rol_id) |
+| **POST** | `/auth/register` | Público | Registro de usuario |
+| **POST** | `/users/create` | Solo Admin (1) | Crear usuario regular (contraseña encriptada y excluida) |
+| **PUT** | `/users/update/:id` | Solo Admin (1) | Actualizar usuario (valida existencia y propiedad) |
+| **GET** | `/users` | Solo Admin (1) | Listar usuarios del admin (soporta `?email=`) |
+| **DELETE**| `/users/delete/:id` | Solo Admin (1) | Eliminar usuario del administrador |
+| **GET** | `/users/role/:id` | Solo Admin (1) | Listar usuarios por rol |
+| **POST** | `/projects` | Solo Admin (1) | Crear proyecto vinculado a admin_from_token |
+| **GET** | `/projects` | Admin (1), User (2) | Listar proyectos con relación `usuarios` (sin password) |
+| **GET** | `/projects/:id` | Admin (1), User (2) | Obtener proyecto por ID |
+| **GET** | `/projects/user/:userId` | Admin (1), User (2) | Listar proyectos asignados con relación `proyectos` |
+| **POST** | `/projects/:id/assign` | Solo Admin (1) | Asignar usuario a proyecto en tabla intermedia |
+| **DELETE**| `/projects/:id/users/:userId` | Solo Admin (1) | Remover usuario de proyecto |
+| **PUT** | `/projects/:id` | Solo Admin (1) | Actualizar proyecto |
+| **DELETE**| `/projects/:id` | Solo Admin (1) | Eliminar proyecto y asignaciones |
 
 ---
 
-## 📬 Pruebas en Postman
+## 📬 Colección de Postman
 
-En la carpeta `postman/` se incluyen:
-1. `Segundo_Corte_Evaluativo.postman_collection.json`: 19 peticiones organizadas y comentadas.
-2. `Segundo_Corte_Local.postman_environment.json`: Variables globales preconfiguradas.
+Importa en Postman el archivo:
+* `postman/Backend_Proyecto_Postman_FINAL.postman_collection.json`
+* `postman/Segundo_Corte_Local.postman_environment.json`
 
-### Script Automático de Token en Postman
-En la pestaña **Tests** de la petición `POST {{baseUrl}}/auth/login`:
+Estructurado en las 3 carpetas exigidas:
+1. `01 - AUTENTICACION`
+2. `02 - CRUD USUARIOS - ADMIN`
+3. `03 - CRUD PROYECTOS + ASOCIACIONES`
+
+### Script de Autoguardado en `01 - Login ADMIN`:
 ```javascript
-const response = pm.response.json();
-if (response.token) {
-    pm.collectionVariables.set("adminToken", response.token);
-    console.log("Token JWT guardado automáticamente en adminToken");
-}
+const data = pm.response.json();
+const token = data.token || data.accessToken || data.data?.token || data.data?.accessToken;
+if (token) pm.collectionVariables.set('adminToken', token);
+else console.log('No se encontro token: ', data);
 ```
 
 ---
 
-## 🎥 Guion para el Video Explicativo
+## 🎥 Guion para el Video
 
-Consulta el archivo detallado [`GUION_VIDEO_SEGUNDO_CORTE.md`](./GUION_VIDEO_SEGUNDO_CORTE.md) para la secuencia exacta de 6:45 minutos exigida por la docente.
+Revisa [`GUION_VIDEO_SEGUNDO_CORTE.md`](./GUION_VIDEO_SEGUNDO_CORTE.md) para la secuencia exacta de 0:00 a 6:45 minutos.

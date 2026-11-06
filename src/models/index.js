@@ -3,7 +3,7 @@ const User = require('./user.model');
 const Project = require('./project.model');
 const UserProject = require('./userProject.model');
 
-// Relación Administrador (User) <-> Projects creados
+// Relación Administrador (User) <-> Projects
 User.hasMany(Project, {
   foreignKey: 'administrador_id',
   as: 'administeredProjects'
@@ -14,19 +14,19 @@ Project.belongsTo(User, {
   as: 'administrador'
 });
 
-// Relación N:M Users <-> Projects a través de UserProject
+// Relación N:M Users <-> Projects a través de UserProject (Nomenclatura docente: 'proyectos' y 'usuarios')
 User.belongsToMany(Project, {
   through: UserProject,
-  foreignKey: 'user_id',
-  otherKey: 'project_id',
-  as: 'projects'
+  foreignKey: 'usuario_id',
+  otherKey: 'proyecto_id',
+  as: 'proyectos'
 });
 
 Project.belongsToMany(User, {
   through: UserProject,
-  foreignKey: 'project_id',
-  otherKey: 'user_id',
-  as: 'users'
+  foreignKey: 'proyecto_id',
+  otherKey: 'usuario_id',
+  as: 'usuarios'
 });
 
 module.exports = {

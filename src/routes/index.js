@@ -2,12 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 const authRoutes = require('./auth.routes');
-const usersRoutes = require('./users.routes');
+const userRoutes = require('./user.routes');
 const projectRoutes = require('./project.routes');
 
-// Las rutas ya incluyen sus prefijos internos (/auth/..., /users/..., /projects/...)
 router.use('/', authRoutes);
-router.use('/', usersRoutes);
+router.use('/', userRoutes);
 router.use('/', projectRoutes);
 
 module.exports = router;

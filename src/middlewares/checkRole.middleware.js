@@ -1,8 +1,8 @@
 const checkRole = (allowedRoles) => {
   return (req, res, next) => {
-    const roleId = req.user && req.user.role_id;
+    const rol_id = req.user && (req.user.rol_id || req.user.role_id);
 
-    if (!roleId || !allowedRoles.includes(roleId)) {
+    if (!rol_id || !allowedRoles.includes(rol_id)) {
       return res.status(403).json({ message: 'Acceso denegado. Permisos insuficientes.' });
     }
     next();
