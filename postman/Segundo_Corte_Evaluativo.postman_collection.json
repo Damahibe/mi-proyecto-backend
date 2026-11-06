@@ -1,0 +1,671 @@
+{
+  "info": {
+    "_postman_id": "c7a8e8e2-9b21-4f11-8c43-f6610022d41b",
+    "name": "Segundo Corte Evaluativo - Juliana Gómez Osorio",
+    "description": "Colección completa de pruebas para el Segundo Corte Evaluativo de Backend. Incluye CRUD de Usuarios, CRUD de Proyectos, Seguridad JWT, Control de Acceso basado en Roles (RBAC) y scripts automáticos de extracción de token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@ejemplo.com",
+      "type": "string"
+    },
+    {
+      "key": "adminPassword",
+      "value": "admin1234",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "projectId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Seguridad (Middlewares)",
+      "item": [
+        {
+          "name": "01. Petición SIN Token (Espera 401 Unauthorized)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Demuestra la respuesta 401 cuando no se proporciona cabecera Authorization."
+          },
+          "response": []
+        },
+        {
+          "name": "02. Petición con Token Inválido (Espera 403 Forbidden)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "token_invalido_o_corrupto_12345",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Demuestra la respuesta 403 cuando la firma JWT falla o está expirada."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Autenticación (Auth)",
+      "item": [
+        {
+          "name": "03. Login Admin (Autoguardado de adminToken)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.token) {",
+                  "    pm.collectionVariables.set(\"adminToken\", response.token);",
+                  "    console.log(\"Token JWT guardado automáticamente en adminToken\");",
+                  "}",
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Token exists in response\", function () {",
+                  "    pm.expect(response.token).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Inicia sesión como administrador y almacena automáticamente el JWT generado en la variable adminToken."
+          },
+          "response": []
+        },
+        {
+          "name": "04. Login Usuario Regular (Autoguardado de userToken)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.token) {",
+                  "    pm.collectionVariables.set(\"userToken\", response.token);",
+                  "    console.log(\"Token JWT guardado en userToken\");",
+                  "}",
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"carlos@ejemplo.com\",\n  \"password\": \"user1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Inicia sesión con rol 2 (Usuario) para pruebas de autorización y RBAC."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Módulo de Usuarios",
+      "item": [
+        {
+          "name": "05. Crear Usuario Regular (POST /users/create)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Password must NOT be present in response\", function () {",
+                  "    pm.expect(response.password).to.be.undefined;",
+                  "});",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set(\"userId\", String(response.id));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana Lopez\",\n  \"email\": \"ana.lopez@ejemplo.com\",\n  \"password\": \"passwordSeguro123\",\n  \"role_id\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/create",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "create"]
+            },
+            "description": "Crea un usuario regular asociado al administrador autenticado."
+          },
+          "response": []
+        },
+        {
+          "name": "06. Listar Usuarios (GET /users - Sin Contraseña)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Every user must NOT have password field\", function () {",
+                  "    response.forEach(u => {",
+                  "        pm.expect(u.password).to.be.undefined;",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Lista usuarios excluyendo estrictamente el campo password."
+          },
+          "response": []
+        },
+        {
+          "name": "07. Actualizar Usuario (PUT /users/update/:id)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ana Lopez Modificada\",\n  \"email\": \"ana.modificada@ejemplo.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/update/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "update", "{{userId}}"]
+            },
+            "description": "Actualiza la información del usuario validando pertenencia y unicidad de correo."
+          },
+          "response": []
+        },
+        {
+          "name": "08. Filtrar Usuarios por Rol (GET /users/role/:id)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/role/2",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "role", "2"]
+            },
+            "description": "Retorna los usuarios que poseen el rol 2 (Usuario regular)."
+          },
+          "response": []
+        },
+        {
+          "name": "09. Filtrar Usuarios por Email (GET /users?email=...)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users?email=carlos",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "carlos"
+                }
+              ]
+            },
+            "description": "Búsqueda con filtro parcial de correo mediante req.query.email."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Módulo de Proyectos",
+      "item": [
+        {
+          "name": "10. Crear Proyecto (POST /projects)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "if (response.id) {",
+                  "    pm.collectionVariables.set(\"projectId\", String(response.id));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Plataforma Web E-commerce\",\n  \"description\": \"Proyecto de desarrollo de tienda virtual con PostgreSQL y microservicios\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/projects",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects"]
+            },
+            "description": "Crea un proyecto vinculado al ID del administrador autenticado."
+          },
+          "response": []
+        },
+        {
+          "name": "11. Listar Proyectos del Administrador (GET /projects)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects"]
+            },
+            "description": "Lista proyectos con sus usuarios asociados (sin incluir password)."
+          },
+          "response": []
+        },
+        {
+          "name": "12. Obtener Proyecto por ID (GET /projects/:id)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "{{projectId}}"]
+            },
+            "description": "Consulta un proyecto específico por clave primaria."
+          },
+          "response": []
+        },
+        {
+          "name": "13. Asignar Usuario a Proyecto (POST /projects/:id/assign)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{userId}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{projectId}}/assign",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "{{projectId}}", "assign"]
+            },
+            "description": "Vincula al usuario en la tabla intermedia UserProject."
+          },
+          "response": []
+        },
+        {
+          "name": "14. Consultar Proyectos de un Usuario (GET /projects/user/:userId)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "user", "{{userId}}"]
+            },
+            "description": "Muestra todos los proyectos asignados a un usuario específico."
+          },
+          "response": []
+        },
+        {
+          "name": "15. Desvincular Usuario de Proyecto (DELETE /projects/:id/users/:userId)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{projectId}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "{{projectId}}", "users", "{{userId}}"]
+            },
+            "description": "Elimina el registro de la tabla intermedia UserProject."
+          },
+          "response": []
+        },
+        {
+          "name": "16. Actualizar Proyecto (PUT /projects/:id)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Plataforma Web E-commerce v2.0\",\n  \"description\": \"Descripción actualizada con nuevas especificaciones\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "{{projectId}}"]
+            },
+            "description": "Modifica datos del proyecto comprobando existencia y propiedad."
+          },
+          "response": []
+        },
+        {
+          "name": "17. Eliminar Proyecto (DELETE /projects/:id)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "{{projectId}}"]
+            },
+            "description": "Elimina las asociaciones y el proyecto físicamente."
+          },
+          "response": []
+        },
+        {
+          "name": "18. Eliminar Usuario (DELETE /users/:id)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "{{userId}}"]
+            },
+            "description": "Elimina el usuario validando pertenencia al administrador."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Control de Permisos y Roles (RBAC)",
+      "item": [
+        {
+          "name": "19. Usuario Regular Creando Proyecto (Espera 403 Forbidden)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{userToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Intento no autorizado\",\n  \"description\": \"Un usuario con role_id: 2 no debe poder crear proyectos\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/projects",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects"]
+            },
+            "description": "Comprueba que checkRole([1]) deniega el acceso con 403 a usuarios con rol 2."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
