@@ -13,9 +13,9 @@ Este proyecto backend implementa una arquitectura en capas en **Node.js** con **
 
 * **Prefijo Oficial de Rutas:** Todas las rutas están montadas bajo `/api/v1` (`baseUrl = http://localhost:3000/api/v1/`).
 * **Seguridad y Middlewares Oficiales:**
-  * `src/middlewares/auth.middleware.js`: Extrae `Authorization: Bearer <token>`, retorna **401** si no hay token y **403** si el token es inválido o expira.
-  * `src/middlewares/checkRole.middleware.js`: Valida permisos basados en roles (`1 = ADMIN`, `2 = USER`).
-  * `src/middlewares/error.middleware.js`: Middleware global de 4 parámetros para respuestas de error uniformes.
+  * `src/middleware/auth.middleware.js`: Extrae `Authorization: Bearer <token>`, retorna **401** si no hay token y **403** si el token es inválido o expira.
+  * `src/middleware/checkRole.middleware.js`: Valida permisos basados en roles (`1 = ADMIN`, `2 = USER`).
+  * `src/middleware/error.middleware.js`: Middleware global de 4 parámetros para respuestas de error uniformes.
 * **Nomenclatura y Esquema Relacional (`snake_case`):**
   * Campos y parámetros: `rol_id`, `administrador_id`, `admin_from_token`, `nombre`, `descripcion`, `proyecto_id`, `usuario_id`, `email`, `password`.
 * **Exclusión Estricta de Contraseñas:** `attributes: { exclude: ['password'] }` en todas las consultas de lectura.
