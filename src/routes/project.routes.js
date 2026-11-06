@@ -1,23 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const projectController = require('../controllers/project.controller');
-const authenticateToken = require('../middlewares/auth.middleware');
-const checkRole = require('../middlewares/checkRole.middleware');
+const { authenticateToken, checkRole } = require('../middleware/auth.middleware');
+const ROLES = require('../utils/constants');
+const errorHandler = require('../middleware/error.middleware');
 
-const ROLES = { ADMIN: 1, USER: 2 };
+// Rutas de proyectos
+router.post('/projects', authenticateToken, checkRole([ROLES.ADMIN]), projectController.createProject);
+router.get('/projects', authenticateToken, checkRole([ROLES.ADMIN, ROLES.USER]), projectController.getAllProjects);
+router.get('/projects/:id', authenticateToken, checkRole([ROLES.ADMIN, ROLES.USER]), projectController.getProjectById);
+router.get('/projects/user/:userId', authenticateToken, checkRole([ROLES.ADMIN, ROLES.USER]), projectController.getProjectsByUserId);
+router.put('/projects/:id', authenticateToken, checkRole([ROLES.ADMIN]), projectController.updateProject);
+router.delete('/projects/:id', authenticateToken, checkRole([ROLES.ADMIN]), projectController.deleteProject);
 
-router.use(authenticateToken);
+// Asociaciones de usuarios a proyectos
+router.post('/projects/:id/assign', authenticateToken, checkRole([ROLES.ADMIN]), projectController.assignUserToProject);
+router.delete('/projects/:id/users/:userId', authenticateToken, checkRole([ROLES.ADMIN]), projectController.removeUserFromProject);
 
-// CRUD Proyectos
-router.post('/projects', checkRole([ROLES.ADMIN]), projectController.createProject);
-router.get('/projects', checkRole([ROLES.ADMIN, ROLES.USER]), projectController.getAllProjects);
-router.get('/projects/:id', checkRole([ROLES.ADMIN, ROLES.USER]), projectController.getProjectById);
-router.get('/projects/user/:userId', checkRole([ROLES.ADMIN, ROLES.USER]), projectController.getProjectsByUserId);
-router.put('/projects/:id', checkRole([ROLES.ADMIN]), projectController.updateProject);
-router.delete('/projects/:id', checkRole([ROLES.ADMIN]), projectController.deleteProject);
-
-// Asociaciones
-router.post('/projects/:id/assign', checkRole([ROLES.ADMIN]), projectController.assignUserToProject);
-router.delete('/projects/:id/users/:userId', checkRole([ROLES.ADMIN]), projectController.removeUserFromProject);
+// Middleware para manejar errores
+router.use(errorHandler);
 
 module.exports = router;

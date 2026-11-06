@@ -43,15 +43,15 @@ exports.getProjectById = async (id, admin_from_token) => {
     });
 
     if (!project) {
-      const error = new Error('Proyecto no encontrado');
-      error.statusCode = 404;
-      throw error;
+      const err = new Error('Proyecto no encontrado');
+      err.statusCode = 404;
+      throw err;
     }
 
     if (project.administrador_id !== admin_from_token) {
-      const error = new Error('Acceso denegado a este proyecto');
-      error.statusCode = 403;
-      throw error;
+      const err = new Error('Acceso denegado a este proyecto');
+      err.statusCode = 403;
+      throw err;
     }
 
     return project;
@@ -74,9 +74,9 @@ exports.getProjectsByUserId = async (usuario_id) => {
     });
 
     if (!user) {
-      const error = new Error('Usuario no encontrado');
-      error.statusCode = 404;
-      throw error;
+      const err = new Error('Usuario no encontrado');
+      err.statusCode = 404;
+      throw err;
     }
 
     return user.proyectos;
@@ -91,22 +91,22 @@ exports.assignUserToProject = async (proyecto_id, usuario_id, admin_from_token) 
   try {
     const project = await Project.findByPk(proyecto_id);
     if (!project) {
-      const error = new Error('Proyecto no encontrado');
-      error.statusCode = 404;
-      throw error;
+      const err = new Error('Proyecto no encontrado');
+      err.statusCode = 404;
+      throw err;
     }
 
     if (project.administrador_id !== admin_from_token) {
-      const error = new Error('Acceso denegado, no administra este proyecto');
-      error.statusCode = 403;
-      throw error;
+      const err = new Error('Acceso denegado, no administra este proyecto');
+      err.statusCode = 403;
+      throw err;
     }
 
     const user = await User.findByPk(usuario_id);
     if (!user) {
-      const error = new Error('Usuario a asignar no encontrado');
-      error.statusCode = 404;
-      throw error;
+      const err = new Error('Usuario a asignar no encontrado');
+      err.statusCode = 404;
+      throw err;
     }
 
     const exists = await UserProject.findOne({
@@ -114,9 +114,9 @@ exports.assignUserToProject = async (proyecto_id, usuario_id, admin_from_token) 
     });
 
     if (exists) {
-      const error = new Error('El usuario ya está asignado a este proyecto');
-      error.statusCode = 400;
-      throw error;
+      const err = new Error('El usuario ya está asignado a este proyecto');
+      err.statusCode = 400;
+      throw err;
     }
 
     await UserProject.create({
@@ -136,15 +136,15 @@ exports.removeUserFromProject = async (proyecto_id, usuario_id, admin_from_token
   try {
     const project = await Project.findByPk(proyecto_id);
     if (!project) {
-      const error = new Error('Proyecto no encontrado');
-      error.statusCode = 404;
-      throw error;
+      const err = new Error('Proyecto no encontrado');
+      err.statusCode = 404;
+      throw err;
     }
 
     if (project.administrador_id !== admin_from_token) {
-      const error = new Error('Acceso denegado, no administra este proyecto');
-      error.statusCode = 403;
-      throw error;
+      const err = new Error('Acceso denegado, no administra este proyecto');
+      err.statusCode = 403;
+      throw err;
     }
 
     const assignment = await UserProject.findOne({
@@ -152,9 +152,9 @@ exports.removeUserFromProject = async (proyecto_id, usuario_id, admin_from_token
     });
 
     if (!assignment) {
-      const error = new Error('La asignación no existe');
-      error.statusCode = 404;
-      throw error;
+      const err = new Error('La asignación no existe');
+      err.statusCode = 404;
+      throw err;
     }
 
     await assignment.destroy();
@@ -170,15 +170,15 @@ exports.updateProject = async (id, nombre, descripcion, admin_from_token) => {
   try {
     const project = await Project.findByPk(id);
     if (!project) {
-      const error = new Error('Proyecto no encontrado');
-      error.statusCode = 404;
-      throw error;
+      const err = new Error('Proyecto no encontrado');
+      err.statusCode = 404;
+      throw err;
     }
 
     if (project.administrador_id !== admin_from_token) {
-      const error = new Error('Acceso denegado para modificar este proyecto');
-      error.statusCode = 403;
-      throw error;
+      const err = new Error('Acceso denegado para modificar este proyecto');
+      err.statusCode = 403;
+      throw err;
     }
 
     await project.update({
@@ -198,15 +198,15 @@ exports.deleteProject = async (id, admin_from_token) => {
   try {
     const project = await Project.findByPk(id);
     if (!project) {
-      const error = new Error('Proyecto no encontrado');
-      error.statusCode = 404;
-      throw error;
+      const err = new Error('Proyecto no encontrado');
+      err.statusCode = 404;
+      throw err;
     }
 
     if (project.administrador_id !== admin_from_token) {
-      const error = new Error('Acceso denegado para eliminar este proyecto');
-      error.statusCode = 403;
-      throw error;
+      const err = new Error('Acceso denegado para eliminar este proyecto');
+      err.statusCode = 403;
+      throw err;
     }
 
     await UserProject.destroy({ where: { proyecto_id: id } });

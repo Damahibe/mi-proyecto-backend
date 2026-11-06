@@ -1,23 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller');
-const authenticateToken = require('../middlewares/auth.middleware');
-const checkRole = require('../middlewares/checkRole.middleware');
+const { authenticateToken, checkRole } = require('../middleware/auth.middleware');
+const ROLES = require('../utils/constants');
+const errorHandler = require('../middleware/error.middleware');
 
-const ROLES = { ADMIN: 1, USER: 2 };
+// Rutas de usuarios obligatorias
+router.post('/users/create', authenticateToken, checkRole([ROLES.ADMIN]), userController.createUser);
+router.put('/users/update/:id', authenticateToken, checkRole([ROLES.ADMIN]), userController.updateUser);
+router.get('/users', authenticateToken, checkRole([ROLES.ADMIN]), userController.getAllUsersByAdministradorId);
+router.delete('/users/delete/:id', authenticateToken, checkRole([ROLES.ADMIN]), userController.deleteUser);
+router.get('/users/rol/:id', authenticateToken, checkRole([ROLES.ADMIN]), userController.getAllUsersByRolId);
 
-router.use(authenticateToken);
+// Aliases para máxima compatibilidad
+router.get('/users/role/:id', authenticateToken, checkRole([ROLES.ADMIN]), userController.getAllUsersByRolId);
+router.post('/users', authenticateToken, checkRole([ROLES.ADMIN]), userController.createUser);
+router.put('/users/:id', authenticateToken, checkRole([ROLES.ADMIN]), userController.updateUser);
+router.delete('/users/:id', authenticateToken, checkRole([ROLES.ADMIN]), userController.deleteUser);
 
-// Rutas exactas del Segundo Corte
-router.post('/users/create', checkRole([ROLES.ADMIN]), userController.createUser);
-router.put('/users/update/:id', checkRole([ROLES.ADMIN]), userController.updateUser);
-router.get('/users', checkRole([ROLES.ADMIN]), userController.getAllUsersByAdministradorId);
-router.delete('/users/delete/:id', checkRole([ROLES.ADMIN]), userController.deleteUser);
-router.get('/users/role/:id', checkRole([ROLES.ADMIN]), userController.getAllUsersByRolId);
-
-// Aliases REST para máxima compatibilidad
-router.post('/users', checkRole([ROLES.ADMIN]), userController.createUser);
-router.put('/users/:id', checkRole([ROLES.ADMIN]), userController.updateUser);
-router.delete('/users/:id', checkRole([ROLES.ADMIN]), userController.deleteUser);
+// Middleware para manejar errores
+router.use(errorHandler);
 
 module.exports = router;
