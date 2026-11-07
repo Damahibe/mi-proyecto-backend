@@ -42,7 +42,7 @@ Este proyecto backend implementa una arquitectura en capas en **Node.js** con **
 
 ### 1. Entrar al proyecto e instalar dependencias
 ```bash
-cd ~/.gemini/antigravity/scratch/mi-proyecto-backend
+cd mi-proyecto-backend
 npm install
 ```
 
@@ -133,8 +133,3 @@ if (token) pm.collectionVariables.set('adminToken', token);
 else console.log('No se encontro token: ', data);
 ```
 
----
-
-## 🎥 Guion para el Video
-
-Revisa [`GUION_VIDEO_SEGUNDO_CORTE.md`](./GUION_VIDEO_SEGUNDO_CORTE.md) para la secuencia exacta de 0:00 a 6:45 minutos.

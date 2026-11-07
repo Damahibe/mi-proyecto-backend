@@ -18,3 +18,14 @@ yarn-error.log*
 # Editor directories
 .vscode/
 .idea/
+
+# Postman workspace cache
+.postman/
+postman/collections/
+postman/documents/
+postman/environments/
+postman/flows/
+postman/globals/
+postman/mocks/
+postman/specs/
+
